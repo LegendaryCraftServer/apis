@@ -1,0 +1,136 @@
+local bgColorA = colors.green
+local textColorA = colors.white
+local bgColorI = colors.red
+local textColorI = colors.white
+
+local buttons = {}
+
+function addButton(name, text, func, side, xmin, width, ymin, height, _bgColorI, _textColorI, _bgColorA, _textColorA, active, hidden)
+   buttons[name] = {}
+   buttons[name]["text"] = text
+   buttons[name]["func"] = func
+   buttons[name]["active"] = false
+   buttons[name]["hidden"] = false
+   buttons[name]["side"] = side
+   buttons[name]["xmin"] = xmin
+   buttons[name]["ymin"] = ymin
+   buttons[name]["width"] = width
+   buttons[name]["height"] = height
+   buttons[name]["bgColorA"] = bgColorA
+   buttons[name]["textColorA"] = textColorA
+   buttons[name]["bgColorI"] = bgColorI
+   buttons[name]["textColorI"] = textColorI
+   
+   if _textColorI ~= nil then
+    buttons[name]["textColorI"] = _textColorI
+   end
+
+   if _textColorA ~= nil then
+    buttons[name]["textColorA"] = _textColorA
+   end
+   
+   if _bgColorI ~= nil then
+    buttons[name]["bgColorI"] = _bgColorI
+   end
+
+   if _bgColorA ~= nil then
+    buttons[name]["bgColorA"] = _bgColorA
+   end
+   
+   if hidden ~= nil then
+    buttons[name]["hidden"] = hidden
+   end
+   
+   if active ~= nil then
+    buttons[name]["active"] = active
+   end
+end
+
+function drawButton(name, clear) 
+  local screen, button
+	local middle, left, right
+	local i = 0
+	
+	if buttons[name] ~= nil then		
+		button = buttons[name]
+		screen = peripheral.wrap(button.side)
+		middle = math.floor(button.height / 2)
+		left = math.floor((button.width - string.len(button.text)) / 2)
+		right = button.width - left - string.len(button.text)	
+		if button.active == true then
+			screen.setTextColor(button.textColorA)
+			screen.setBackgroundColor(button.bgColorA)
+		else
+			screen.setTextColor(button.textColorI)
+			screen.setBackgroundColor(button.bgColorI)
+		end
+		
+		if button.hidden == true then
+			screen.setBackgroundColor(colors.black)
+			screen.setTextColor(colors.black)
+		end
+		
+		for i = 0, button.height - 1 do
+			screen.setCursorPos(button.xmin, button.ymin + i)
+			if i == middle and button.hidden == false then		
+				screen.write(string.rep(' ', left)..button.text..string.rep(' ', right))
+			else
+				screen.write(string.rep(' ', button.width));
+			end
+		end
+	end
+end
+
+function moveButton(name, x, y)
+	local hide = buttons[name].hidden
+	if hide == false then
+		hideButton(name)
+	end
+	buttons[name].xmin = buttons[name].xmin + x
+	buttons[name].ymin = buttons[name].ymin + y
+	if hide == false then
+		showButton(name)
+	end
+end
+
+function hideButton(name, toggle)
+	buttons[name].hidden = true
+	drawButton(name)
+end
+
+function showButton(name, toggle)
+	buttons[name].hidden = false
+	drawButton(name)
+end
+
+function checkButton(side, x, y)
+   for name, data in pairs(buttons) do
+      if side == data.side and 
+      	 y >= data.ymin and y <= data.ymin + data.height - 1 and
+         x >= data.xmin and x <= data.xmin + data.width - 1 then      	
+		 
+		 return name
+        
+      end
+   end
+end
+
+function toggle(name)
+	buttons[name].active = not buttons[name].active
+	drawButton(name)
+end
+
+function init(_bgColorA, _textColorA, _bgColorI, _textColorI)
+	bgColorA   = _bgColorA
+	textColorA = _textColorA
+	bgColorI   = _bgColorI
+	textColorI = _textColorI
+end
+
+function fire(side, x, y)
+	local name = checkButton(side, x, y)
+	if name ~= nil then
+		toggle(name)
+        buttons[name].func(name, buttons[name])
+	end
+end
