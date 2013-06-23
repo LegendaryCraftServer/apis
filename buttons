@@ -47,7 +47,7 @@ function addButton(name, text, func, side, xmin, width, ymin, height, _bgColorI,
 end
 
 function drawButton(name, clear) 
-  local screen, button
+	local screen, button
 	local middle, left, right
 	local i = 0
 	
@@ -132,5 +132,14 @@ function fire(side, x, y)
 	if name ~= nil then
 		toggle(name)
         buttons[name].func(name, buttons[name])
+	end
+end
+
+function listenMonitors()
+	while true do
+		local e, s, x, y = os.pullEvent('monitor_touch')
+		if e == 'monitor_touch' then
+			fire(s, x, y)
+		end
 	end
 end
